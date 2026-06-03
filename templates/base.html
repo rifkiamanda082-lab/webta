@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MotoRent - Rental Motor Terpercaya{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom Style CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar-header">
+        <div class="nav-container">
+            <a href="{% url 'landing' %}" class="brand-logo">
+                <span class="logo-icon">🏍️</span>
+                <span class="logo-text">Moto<span class="highlight">Rent</span></span>
+            </a>
+            
+            <input type="checkbox" id="nav-toggle" class="nav-toggle">
+            <label for="nav-toggle" class="nav-toggle-label">
+                <span></span>
+            </label>
+            
+            <nav class="nav-menu">
+                <a href="{% url 'landing' %}" class="nav-link">Home</a>
+                {% if user.is_authenticated %}
+                    {% if user.profile.role == 'admin' %}
+                        <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+                        <a href="{% url 'motor_browse' %}" class="nav-link">Sewa Motor</a>
+                        <a href="{% url 'motor_list' %}" class="nav-link">Kelola Motor</a>
+                        <a href="{% url 'rental_list' %}" class="nav-link">Kelola Sewa</a>
+                        <a href="{% url 'user_list' %}" class="nav-link">Daftar Pengguna</a>
+                        <a href="/admin/" class="nav-link text-warning" target="_blank">Django Admin</a>
+                    {% else %}
+                        <a href="{% url 'dashboard' %}" class="nav-link">Dashboard Saya</a>
+                        <a href="{% url 'motor_browse' %}" class="nav-link">Sewa Motor</a>
+                    {% endif %}
+                    <span class="nav-user-greeting">Halo, <strong>{{ user.username }}</strong> ({% if user.profile.role == 'admin' %}Admin{% else %}User{% endif %})</span>
+                    <a href="{% url 'logout' %}" class="btn btn-secondary nav-btn">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary nav-btn">Register</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <span class="alert-message">{{ message }}</span>
+                        <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <h3>MotoRent</h3>
+                <p>Solusi sewa motor cepat, aman, dan terpercaya di kota Anda. Nikmati perjalanan Anda dengan armada terbaik kami.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Link Cepat</h4>
+                <ul>
+                    <li><a href="{% url 'landing' %}">Home</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        {% if user.profile.role == 'user' %}
+                            <li><a href="{% url 'motor_browse' %}">Sewa Motor</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Kontak Kami</h4>
+                <p>📍 Jl. Terusan Rental No. 45, Jakarta</p>
+                <p>📞 +62 812-3456-7890</p>
+                <p>✉️ support@motorent.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 MotoRent. Hak Cipta Dilindungi.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+    <script>
+        // Auto fade out alerts after 5 seconds
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(function() {
+                    alert.remove();
+                }, 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Masuk Ke Akun - MotoRent{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <div class="auth-card-header">
+            <h2>Selamat Datang Kembali</h2>
+            <p>Masukkan username dan password Anda untuk masuk ke sistem.</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <span class="field-error">{{ field.errors|first }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary btn-block btn-lg m-t-md">Masuk</button>
+        </form>
+        
+        <div class="auth-card-footer">
+            <p>Belum memiliki akun? <a href="{% url 'register' %}" class="auth-link">Daftar Akun Baru</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

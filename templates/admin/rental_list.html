@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Sewa - Admin MotoRent{% endblock %}
+
+{% block content %}
+<section class="admin-section card">
+    <div class="section-header">
+        <div>
+            <h2>Kelola Transaksi Penyewaan</h2>
+            <p>Konfirmasi persetujuan sewa masuk, selesaikan transaksi, atau batalkan sewa.</p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID Sewa</th>
+                    <th>Nama Pelanggan</th>
+                    <th>Kontak / Alamat</th>
+                    <th>Armada Motor</th>
+                    <th>Mulai - Selesai</th>
+                    <th>Total Biaya</th>
+                    <th>Status</th>
+                    <th>Aksi Kelola</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rental in rentals %}
+                    <tr>
+                        <td><strong>#{{ rental.id }}</strong></td>
+                        <td>
+                            <strong>{{ rental.user.first_name }} {{ rental.user.last_name }}</strong><br>
+                            <span class="text-muted text-xs">@{{ rental.user.username }}</span>
+                        </td>
+                        <td>
+                            📞 {{ rental.user.profile.phone_number }}<br>
+                            <span class="text-xs text-muted">📍 {{ rental.user.profile.address|truncatechars:30 }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ rental.motor.brand }} {{ rental.motor.name }}</strong><br>
+                            <code>{{ rental.motor.plate_number }}</code>
+                        </td>
+                        <td>
+                            {{ rental.start_date }} s/d<br>
+                            {{ rental.end_date }}
+                        </td>
+                        <td><strong>Rp {{ rental.total_price|floatformat:0 }}</strong></td>
+                        <td>
+                            {% if rental.status == 'pending' %}
+                                <span class="badge badge-warning">Menunggu Persetujuan</span>
+                            {% elif rental.status == 'approved' %}
+                                <span class="badge badge-success">Disetujui / Aktif</span>
+                            {% elif rental.status == 'completed' %}
+                                <span class="badge badge-info">Selesai</span>
+                            {% elif rental.status == 'cancelled' %}
+                                <span class="badge badge-danger">Dibatalkan</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical">
+                                {% if rental.status == 'pending' %}
+                                    <a href="{% url 'rental_update_status' rental.id 'approve' %}" class="btn btn-success btn-sm btn-block m-b-xs" onclick="return confirm('Setujui transaksi ini?');">Approve</a>
+                                    <a href="{% url 'rental_update_status' rental.id 'cancel' %}" class="btn btn-danger btn-sm btn-block" onclick="return confirm('Batalkan transaksi ini?');">Batal</a>
+                                {% elif rental.status == 'approved' %}
+                                    <a href="{% url 'rental_update_status' rental.id 'complete' %}" class="btn btn-info btn-sm btn-block" onclick="return confirm('Tandai penyewaan ini selesai dan motor dikembalikan?');">Selesai</a>
+                                {% else %}
+                                    <span class="text-muted text-xs">Arsip</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-lg">Belum ada data transaksi penyewaan motor.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Sewa {{ motor.brand }} {{ motor.name }} - MotoRent{% endblock %}
+
+{% block content %}
+<section class="booking-section">
+    <div class="booking-grid">
+        <!-- Motor Detail Card -->
+        <div class="booking-motor-card card">
+            <div class="motor-img-wrapper">
+                {% if motor.image_url %}
+                    <img src="{{ motor.image_url }}" alt="{{ motor.name }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400';">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400" alt="Motor Default">
+                {% endif %}
+            </div>
+            <div class="booking-motor-details">
+                <span class="motor-brand">{{ motor.brand }}</span>
+                <h2>{{ motor.name }}</h2>
+                <p class="motor-plate">Plat Nomor: <strong>{{ motor.plate_number }}</strong></p>
+                <div class="price-badge">
+                    <span class="price-val">Rp {{ motor.price_per_day|floatformat:0 }}</span>
+                    <span class="price-unit">/ hari</span>
+                </div>
+                {% if motor.description %}
+                    <div class="motor-desc-box">
+                        <h4>Deskripsi:</h4>
+                        <p>{{ motor.description }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Rental Form Card -->
+        <div class="booking-form-card card">
+            <h3>Formulir Penyewaan</h3>
+            <p class="form-instruction">Tentukan tanggal mulai dan selesai sewa. Total biaya akan dihitung secara otomatis.</p>
+            
+            <form method="POST" class="booking-form-element">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <span class="field-error">{{ field.errors|first }}</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <!-- Dynamic Calculation Panel -->
+                <div class="price-calc-panel" id="price-calc-panel" style="display: none;">
+                    <div class="calc-row">
+                        <span>Durasi Sewa:</span>
+                        <strong id="calc-duration">0 Hari</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Tarif Harian:</span>
+                        <strong>Rp {{ motor.price_per_day|floatformat:0 }}</strong>
+                    </div>
+                    <hr class="calc-divider">
+                    <div class="calc-row total-row">
+                        <span>Estimasi Total Biaya:</span>
+                        <span class="total-price-val" id="calc-total">Rp 0</span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'motor_browse' %}" class="btn btn-secondary">Kembali</a>
+                    <button type="submit" class="btn btn-primary">Ajukan Sewa Motor 🚀</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.querySelector('input[name="start_date"]');
+        const endDateInput = document.querySelector('input[name="end_date"]');
+        const calcPanel = document.getElementById('price-calc-panel');
+        const calcDuration = document.getElementById('calc-duration');
+        const calcTotal = document.getElementById('calc-total');
+        
+        const pricePerDay = parseFloat("{{ motor.price_per_day }}");
+
+        function calculatePrice() {
+            const startVal = startDateInput.value;
+            const endVal = endDateInput.value;
+
+            if (startVal && endVal) {
+                const startDate = new Date(startVal);
+                const endDate = new Date(endVal);
+
+                // Hitung selisih waktu dalam milidetik
+                const diffTime = endDate - startDate;
+                // Hitung selisih hari
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays >= 0) {
+                    const duration = diffDays === 0 ? 1 : diffDays; // Minimal 1 hari
+                    const total = duration * pricePerDay;
+
+                    calcDuration.textContent = duration + ' Hari';
+                    calcTotal.textContent = 'Rp ' + total.toLocaleString('id-ID');
+                    calcPanel.style.display = 'block';
+                } else {
+                    calcPanel.style.display = 'none';
+                }
+            } else {
+                calcPanel.style.display = 'none';
+            }
+        }
+
+        // Set minimal date today for start_date
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.setAttribute('min', today);
+        endDateInput.setAttribute('min', today);
+
+        startDateInput.addEventListener('change', function() {
+            endDateInput.setAttribute('min', startDateInput.value);
+            calculatePrice();
+        });
+        
+        endDateInput.addEventListener('change', calculatePrice);
+    });
+</script>
+{% endblock %}

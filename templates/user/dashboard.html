@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Saya - MotoRent{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar / Profile Card -->
+    <aside class="dashboard-sidebar">
+        <div class="profile-card">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-details">
+                <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                <p class="profile-username">@{{ user.username }}</p>
+                <span class="badge badge-user">Pengguna</span>
+            </div>
+            <hr class="divider">
+            <div class="profile-info-list">
+                <div class="info-item">
+                    <span class="info-label">📧 Email:</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📞 Telepon:</span>
+                    <span class="info-value">{{ user.profile.phone_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📍 Alamat:</span>
+                    <span class="info-value">{{ user.profile.address }}</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Dashboard Body -->
+    <section class="dashboard-main">
+        <div class="dashboard-header">
+            <h2>Dashboard Saya</h2>
+            <a href="{% url 'motor_browse' %}" class="btn btn-primary">Sewa Motor Baru 🏍️</a>
+        </div>
+
+        <!-- Active Rentals Section -->
+        <div class="dashboard-section card">
+            <h3>Sewa Aktif & Pengajuan</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID Sewa</th>
+                            <th>Motor</th>
+                            <th>Tanggal Mulai</th>
+                            <th>Tanggal Selesai</th>
+                            <th>Total Biaya</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rental in active_rentals %}
+                            <tr>
+                                <td><strong>#{{ rental.id }}</strong></td>
+                                <td>
+                                    <div class="table-motor-info">
+                                        <span class="motor-name">{{ rental.motor.brand }} {{ rental.motor.name }}</span>
+                                        <span class="motor-plate">{{ rental.motor.plate_number }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ rental.start_date }}</td>
+                                <td>{{ rental.end_date }}</td>
+                                <td>Rp {{ rental.total_price|floatformat:0 }}</td>
+                                <td>
+                                    {% if rental.status == 'pending' %}
+                                        <span class="badge badge-warning">Menunggu Persetujuan</span>
+                                    {% elif rental.status == 'approved' %}
+                                        <span class="badge badge-success">Aktif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rental.status == 'pending' %}
+                                        <button onclick="showQrisModal({{ rental.id }}, '{{ rental.total_price|floatformat:0 }}')" class="btn btn-success btn-sm m-b-xs" style="display:block; width:100%;">💳 Bayar QRIS</button>
+                                        <a href="{% url 'booking_cancel' rental.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin membatalkan penyewaan ini?');" style="display:block; width:100%;">Batalkan</a>
+                                    {% else %}
+                                        <span class="text-muted">Tidak ada aksi</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-lg">
+                                    <p>Tidak ada transaksi sewa yang sedang aktif.</p>
+                                    <a href="{% url 'motor_browse' %}" class="btn btn-outline btn-sm m-t-sm">Pilih Motor Sekarang</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- History Rentals Section -->
+        <div class="dashboard-section card">
+            <h3>Riwayat Penyewaan</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID Sewa</th>
+                            <th>Motor</th>
+                            <th>Tanggal Mulai</th>
+                            <th>Tanggal Selesai</th>
+                            <th>Total Biaya</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rental in rental_history %}
+                            <tr>
+                                <td>#{{ rental.id }}</td>
+                                <td>{{ rental.motor.brand }} {{ rental.motor.name }}</td>
+                                <td>{{ rental.start_date }}</td>
+                                <td>{{ rental.end_date }}</td>
+                                <td>Rp {{ rental.total_price|floatformat:0 }}</td>
+                                <td>
+                                    {% if rental.status == 'completed' %}
+                                        <span class="badge badge-info">Selesai</span>
+                                    {% elif rental.status == 'cancelled' %}
+                                        <span class="badge badge-danger">Dibatalkan</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-md">Belum ada riwayat penyewaan.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- QRIS Modal -->
+<div id="qrisModal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+    <div class="modal-content" style="background-color: #fff; margin: 5% auto; padding: 2rem; border-radius: var(--radius-lg); width: 90%; max-width: 450px; text-align: center; position: relative; box-shadow: var(--shadow-lg);">
+        <span onclick="closeQrisModal()" style="position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; color: #666;">&times;</span>
+        <h2 style="margin-bottom: 0.5rem; color: var(--bg-dark); font-weight: 800;">Pembayaran QRIS</h2>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Silakan scan QR Code di bawah ini menggunakan aplikasi m-Banking atau e-Wallet Anda (Dana, OVO, GoPay, dll).</p>
+        
+        <div style="background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; margin-bottom: 1.5rem;">
+            <!-- QRIS Image -->
+            {% load static %}
+            <img src="{% static 'images/qris.jpg' %}" alt="QRIS Pembayaran" style="width: 100%; max-width: 300px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); margin-bottom: 1rem;">
+            
+            <h3 style="font-size: 1.1rem; color: var(--text-muted);">Total Tagihan</h3>
+            <p id="modalAmountText" style="font-size: 2rem; font-weight: 800; color: var(--primary); margin: 0;">Rp 0</p>
+        </div>
+        
+        <div style="background-color: #FEF3C7; color: #92400E; padding: 1rem; border-radius: var(--radius-sm); text-align: left; font-size: 0.85rem; border-left: 4px solid var(--warning);">
+            <strong>Penting:</strong> Setelah melakukan pembayaran, silakan hubungi/konfirmasi Admin atau tunggu maksimal 1x24 jam agar pesanan sewa motor Anda disetujui.
+        </div>
+        
+        <button onclick="closeQrisModal()" class="btn btn-primary btn-block m-t-md" style="margin-top: 1.5rem;">Tutup Jendela & Konfirmasi Nanti</button>
+    </div>
+</div>
+
+<script>
+function showQrisModal(rentalId, totalAmount) {
+    // Format the number to Indonesian Rupiah standard format
+    const formattedAmount = new Intl.NumberFormat('id-ID').format(totalAmount);
+    document.getElementById('modalAmountText').innerText = "Rp " + formattedAmount;
+    
+    // Show modal
+    document.getElementById('qrisModal').style.display = "block";
+}
+
+function closeQrisModal() {
+    document.getElementById('qrisModal').style.display = "none";
+}
+
+// Close modal if user clicks outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('qrisModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+{% endblock %}

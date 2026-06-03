@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Pilih Motor Sewa - MotoRent{% endblock %}
+
+{% block content %}
+<section class="browse-section">
+    <div class="section-header">
+        <h2>Daftar Armada Motor Tersedia</h2>
+        <p>Silakan pilih motor yang sesuai dengan kebutuhan perjalanan Anda.</p>
+    </div>
+
+    <div class="motors-grid">
+        {% for motor in motors %}
+            <div class="motor-card">
+                <div class="motor-img-wrapper">
+                    {% if motor.image_url %}
+                        <img src="{{ motor.image_url }}" alt="{{ motor.name }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400';">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400" alt="Motor Default">
+                    {% endif %}
+                    <span class="motor-badge badge-success">Tersedia</span>
+                </div>
+                <div class="motor-info">
+                    <span class="motor-brand">{{ motor.brand }}</span>
+                    <h3>{{ motor.name }}</h3>
+                    <p class="motor-plate">{{ motor.plate_number }}</p>
+                    {% if motor.description %}
+                        <p class="motor-desc">{{ motor.description }}</p>
+                    {% endif %}
+                    <div class="motor-footer">
+                        <div class="motor-price">
+                            <span class="price-amount">Rp {{ motor.price_per_day|floatformat:0 }}</span>
+                            <span class="price-unit">/hari</span>
+                        </div>
+                        <a href="{% url 'booking_create' motor.id %}" class="btn btn-primary">Sewa Motor</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">🏍️</div>
+                <h3>Tidak ada motor tersedia</h3>
+                <p>Maaf, saat ini semua armada motor kami sedang disewa atau dalam perawatan. Silakan hubungi admin atau kembali beberapa saat lagi.</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary m-t-md">Kembali ke Dashboard</a>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

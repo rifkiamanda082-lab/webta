@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Manajemen Pengguna - Admin MotoRent{% endblock %}
+
+{% block content %}
+<section class="admin-section card">
+    <div class="section-header">
+        <div>
+            <h2>Manajemen Pengguna</h2>
+            <p>Daftar semua pengguna terdaftar dan perannya dalam sistem.</p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Nama Lengkap</th>
+                    <th>Email</th>
+                    <th>No. Telepon</th>
+                    <th>Alamat Lengkap</th>
+                    <th>Role</th>
+                    <th>Tanggal Bergabung</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                    <tr>
+                        <td><strong>@{{ u.username }}</strong></td>
+                        <td>{{ u.first_name }} {{ u.last_name }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>{{ u.profile.phone_number|default:"-" }}</td>
+                        <td>{{ u.profile.address|default:"-" }}</td>
+                        <td>
+                            {% if u.profile.role == 'admin' %}
+                                <span class="badge badge-admin">Admin</span>
+                            {% else %}
+                                <span class="badge badge-user">Pengguna</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.date_joined|date:"d M Y, H:i" }}</td>
+                        <td>
+                            <a href="/admin/auth/user/{{ u.id }}/change/" target="_blank" class="btn btn-secondary btn-sm">Edit</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-lg">Tidak ada pengguna terdaftar.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

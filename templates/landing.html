@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Selamat Datang di MotoRent - Rental Motor Terpercaya{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section hero-banner">
+    <div class="hero-content">
+        <h1 class="hero-title">Gasss! Liburan<br>Makin Seru<br>dengan <span class="highlight-text-custom">Motor Premium.</span></h1>
+        <p class="hero-subtitle">Rental motor murah, cepat,<br>dan terpercaya.</p>
+        <div class="hero-ctas">
+            {% if user.is_authenticated %}
+                <a href="{% url 'motor_browse' %}" class="btn btn-custom-accent btn-lg">Pesan Motor Sekarang</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-custom-accent btn-lg">Pesan Motor Sekarang</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-header">
+        <h2>Kenapa Memilih MotoRent?</h2>
+        <p>Kami berkomitmen memberikan layanan terbaik untuk kepuasan berkendara Anda.</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Armada Terawat</h3>
+            <p>Semua motor kami diservis berkala secara rutin. Kebersihan dan keselamatan adalah prioritas utama kami.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💸</div>
+            <h3>Harga Terjangkau</h3>
+            <p>Tarif transparan tanpa biaya tersembunyi. Tersedia diskon khusus untuk sewa mingguan atau bulanan.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Proses Instan</h3>
+            <p>Registrasi, pilih motor, ajukan sewa, dan dapatkan persetujuan dalam hitungan menit dari admin kami.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📞</div>
+            <h3>Layanan 24/7</h3>
+            <p>Tim bantuan kami siap membantu Anda kapan saja jika terjadi kendala di jalan atau kebutuhan darurat.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Motors Section -->
+<section class="featured-motors-section">
+    <div class="section-header">
+        <h2>Armada Pilihan Kami</h2>
+        <p>Telusuri beberapa motor yang tersedia untuk disewa hari ini.</p>
+    </div>
+    
+    <div class="motors-grid">
+        {% for motor in motors %}
+            <div class="motor-card">
+                <div class="motor-img-wrapper">
+                    {% if motor.image_url %}
+                        <img src="{{ motor.image_url }}" alt="{{ motor.name }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400';">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400" alt="Motor Default">
+                    {% endif %}
+                    <span class="motor-badge">{{ motor.get_status_display }}</span>
+                </div>
+                <div class="motor-info">
+                    <span class="motor-brand">{{ motor.brand }}</span>
+                    <h3>{{ motor.name }}</h3>
+                    <p class="motor-plate">{{ motor.plate_number }}</p>
+                    {% if motor.description %}
+                        <p class="motor-desc">{{ motor.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    <div class="motor-footer">
+                        <div class="motor-price">
+                            <span class="price-amount">Rp {{ motor.price_per_day|floatformat:0 }}</span>
+                            <span class="price-unit">/hari</span>
+                        </div>
+                        {% if user.is_authenticated %}
+                            {% if user.profile.role == 'user' %}
+                                <a href="{% url 'booking_create' motor.id %}" class="btn btn-primary btn-sm">Sewa Sekarang</a>
+                            {% else %}
+                                <a href="{% url 'motor_edit' motor.id %}" class="btn btn-secondary btn-sm">Edit Motor</a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Sewa Sekarang</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <p>Saat ini belum ada armada motor yang tersedia. Silakan hubungi admin atau kembali nanti.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="view-all-cta">
+        {% if user.is_authenticated %}
+            <a href="{% url 'motor_browse' %}" class="btn btn-outline">Lihat Semua Armada &rarr;</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline">Lihat Semua Armada &rarr;</a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="cta-banner">
+    <div class="cta-card-content">
+        <h2>Siap Untuk Mulai Berkendara?</h2>
+        <p>Daftar sekarang secara gratis, lengkapi profil Anda, dan nikmati kemudahan sewa motor tanpa ribet.</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn btn-accent btn-lg">Daftar Akun Baru</a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="btn btn-accent btn-lg">Lihat Dashboard</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

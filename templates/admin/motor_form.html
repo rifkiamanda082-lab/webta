@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Admin MotoRent{% endblock %}
+
+{% block content %}
+<section class="admin-form-section">
+    <div class="admin-form-card card">
+        <div class="card-header">
+            <h2>{{ title }}</h2>
+            <p>Masukkan rincian informasi spesifikasi dan status motor sewa.</p>
+        </div>
+        
+        <form method="POST" class="admin-form-element">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <span class="field-error">{{ field.errors|first }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="form-actions">
+                <a href="{% url 'motor_list' %}" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary">Simpan Motor 💾</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

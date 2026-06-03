@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Motor - Admin MotoRent{% endblock %}
+
+{% block content %}
+<section class="admin-section card">
+    <div class="section-header">
+        <div>
+            <h2>Kelola Armada Motor</h2>
+            <p>Tambah baru, perbarui detail, atau hapus armada motor sewa Anda.</p>
+        </div>
+        <a href="{% url 'motor_create' %}" class="btn btn-primary">Tambah Motor Baru ➕</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Gambar</th>
+                    <th>Nama Motor</th>
+                    <th>Merk</th>
+                    <th>No. Plat</th>
+                    <th>Tarif Harian</th>
+                    <th>Status</th>
+                    <th>Aksi Kelola</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for motor in motors %}
+                    <tr>
+                        <td>
+                            <div class="table-img-wrapper">
+                                {% if motor.image_url %}
+                                    <img src="{{ motor.image_url }}" alt="{{ motor.name }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=80';">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=80" alt="Motor Default">
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td><strong>{{ motor.name }}</strong></td>
+                        <td>{{ motor.brand }}</td>
+                        <td><code>{{ motor.plate_number }}</code></td>
+                        <td>Rp {{ motor.price_per_day|floatformat:0 }}</td>
+                        <td>
+                            {% if motor.status == 'available' %}
+                                <span class="badge badge-success">Tersedia</span>
+                            {% elif motor.status == 'rented' %}
+                                <span class="badge badge-warning">Disewa</span>
+                            {% elif motor.status == 'maintenance' %}
+                                <span class="badge badge-danger">Perawatan</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'motor_edit' motor.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                                <a href="{% url 'motor_delete' motor.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus motor {{ motor.brand }} {{ motor.name }}?');">Hapus</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-lg">Belum ada armada motor terdaftar. Silakan tambahkan motor baru.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

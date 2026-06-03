@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Admin - MotoRent{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container">
+    <div class="dashboard-header">
+        <h2>Dashboard Utama Admin</h2>
+        <span class="date-badge">📅 Hari Ini: {% now "d F Y" %}</span>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <h3>Pendapatan Kotor</h3>
+                <p class="stat-value text-success">Rp {{ total_revenue|floatformat:0 }}</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🏍️</div>
+            <div class="stat-info">
+                <h3>Total Armada</h3>
+                <p class="stat-value">{{ total_motors }} Motor</p>
+                <span class="stat-sub">{{ available_motors }} Tersedia</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-info">
+                <h3>Sewa Aktif</h3>
+                <p class="stat-value text-info">{{ active_rentals_count }} Transaksi</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info">
+                <h3>Menunggu Persetujuan</h3>
+                <p class="stat-value text-warning">{{ pending_rentals_count }} Pengajuan</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Quick Actions Panel -->
+    <div class="admin-actions-card card m-t-md">
+        <h3>Menu Kelola Data</h3>
+        <div class="actions-grid">
+            <a href="{% url 'motor_list' %}" class="action-btn">
+                <span class="act-icon">🏍️</span>
+                <span class="act-title">Kelola Armada Motor</span>
+                <span class="act-desc">Tambah, edit, hapus data motor</span>
+            </a>
+            <a href="{% url 'rental_list' %}" class="action-btn">
+                <span class="act-icon">📝</span>
+                <span class="act-title">Kelola Sewa & Transaksi</span>
+                <span class="act-desc">Konfirmasi booking, kelola pengembalian</span>
+            </a>
+            <a href="{% url 'user_list' %}" class="action-btn">
+                <span class="act-icon">👥</span>
+                <span class="act-title">Manajemen Pengguna</span>
+                <span class="act-desc">Lihat profil & nomor telepon pelanggan</span>
+            </a>
+            <a href="/admin/" target="_blank" class="action-btn" style="border-color: var(--warning);">
+                <span class="act-icon">⚙️</span>
+                <span class="act-title" style="color: var(--warning);">Django Admin</span>
+                <span class="act-desc">Kelola hak akses & edit data mendalam</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Transactions Section -->
+    <div class="dashboard-section card m-t-md">
+        <div class="section-header">
+            <h3>Transaksi Penyewaan Terbaru</h3>
+            <a href="{% url 'rental_list' %}" class="btn btn-outline btn-sm">Lihat Semua Transaksi</a>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pelanggan</th>
+                        <th>Motor</th>
+                        <th>Mulai / Selesai</th>
+                        <th>Total Biaya</th>
+                        <th>Status</th>
+                        <th>Aksi Kelola</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rental in recent_rentals %}
+                        <tr>
+                            <td><strong>#{{ rental.id }}</strong></td>
+                            <td>
+                                <div class="table-user-info">
+                                    <span class="u-name"><strong>{{ rental.user.first_name }} {{ rental.user.last_name }}</strong></span>
+                                    <span class="u-phone text-muted">{{ rental.user.profile.phone_number }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="table-motor-info">
+                                    <span>{{ rental.motor.brand }} {{ rental.motor.name }}</span>
+                                    <span class="motor-plate text-muted">{{ rental.motor.plate_number }}</span>
+                                </div>
+                            </td>
+                            <td>{{ rental.start_date }} s/d {{ rental.end_date }}</td>
+                            <td>Rp {{ rental.total_price|floatformat:0 }}</td>
+                            <td>
+                                {% if rental.status == 'pending' %}
+                                    <span class="badge badge-warning">Menunggu Persetujuan</span>
+                                {% elif rental.status == 'approved' %}
+                                    <span class="badge badge-success">Disetujui / Aktif</span>
+                                {% elif rental.status == 'completed' %}
+                                    <span class="badge badge-info">Selesai</span>
+                                {% elif rental.status == 'cancelled' %}
+                                    <span class="badge badge-danger">Dibatalkan</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    {% if rental.status == 'pending' %}
+                                        <a href="{% url 'rental_update_status' rental.id 'approve' %}" class="btn btn-success btn-xs" onclick="return confirm('Setujui transaksi ini?');">Approve</a>
+                                        <a href="{% url 'rental_update_status' rental.id 'cancel' %}" class="btn btn-danger btn-xs" onclick="return confirm('Batalkan transaksi ini?');">Batal</a>
+                                    {% elif rental.status == 'approved' %}
+                                        <a href="{% url 'rental_update_status' rental.id 'complete' %}" class="btn btn-info btn-xs" onclick="return confirm('Tandai penyewaan ini selesai dan motor dikembalikan?');">Selesai</a>
+                                    {% else %}
+                                        <span class="text-muted text-xs">Arsip</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-md">Belum ada transaksi penyewaan.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
